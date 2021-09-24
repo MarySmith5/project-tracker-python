@@ -39,6 +39,7 @@ ALTER TABLE public.grades OWNER TO marysmith;
 --
 
 CREATE SEQUENCE public.grades_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -74,6 +75,7 @@ ALTER TABLE public.projects OWNER TO marysmith;
 --
 
 CREATE SEQUENCE public.projects_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -98,17 +100,35 @@ CREATE TABLE public.students (
     id integer NOT NULL,
     first_name character varying(30),
     last_name character varying(30),
-    github character varying(30)
+    github character varying(30) NOT NULL
 );
 
 
 ALTER TABLE public.students OWNER TO marysmith;
 
 --
+-- Name: report_card_view; Type: VIEW; Schema: public; Owner: marysmith
+--
+
+CREATE VIEW public.report_card_view AS
+ SELECT students.first_name,
+    students.last_name,
+    projects.title,
+    projects.max_grade,
+    grades.grade
+   FROM ((public.students
+     JOIN public.grades ON (((students.github)::text = (grades.student_github)::text)))
+     JOIN public.projects ON (((projects.title)::text = (grades.project_title)::text)));
+
+
+ALTER TABLE public.report_card_view OWNER TO marysmith;
+
+--
 -- Name: students_id_seq; Type: SEQUENCE; Schema: public; Owner: marysmith
 --
 
 CREATE SEQUENCE public.students_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -153,8 +173,11 @@ ALTER TABLE ONLY public.students ALTER COLUMN id SET DEFAULT nextval('public.stu
 COPY public.grades (id, student_github, project_title, grade) FROM stdin;
 1	jhacks	Markov	10
 2	jhacks	Blockly	2
-3	sdevelops	Blockly	100
-4	sdevelops	Markov	50
+3	sdevelops	Markov	50
+4	sdevelops	Blockly	100
+5	Adrianaescalante	AJAX	100
+6	msmith123	AJAX	100
+7	msmith123	AJAX	100
 \.
 
 
@@ -164,8 +187,9 @@ COPY public.grades (id, student_github, project_title, grade) FROM stdin;
 
 COPY public.projects (id, title, description, max_grade) FROM stdin;
 1	Markov	Tweets generated from Markov chains	50
-2	Blockly	Programmatic Logic Puzzle Game	10
-5	Wits and Wagers	Bidding Game	150
+2	Blockly	Programmatic Logic Puzzle Game	100
+3	Ajax	Learning to Fetch -- Woof!	150
+4	SQL	Making Tables with Lots of Data	100
 \.
 
 
@@ -176,6 +200,8 @@ COPY public.projects (id, title, description, max_grade) FROM stdin;
 COPY public.students (id, first_name, last_name, github) FROM stdin;
 1	Jane	Hacker	jhacks
 2	Sarah	Developer	sdevelops
+3	Ruth	Rosenthal	ruth5
+4	Mary	Smith	msmith123
 \.
 
 
@@ -183,21 +209,21 @@ COPY public.students (id, first_name, last_name, github) FROM stdin;
 -- Name: grades_id_seq; Type: SEQUENCE SET; Schema: public; Owner: marysmith
 --
 
-SELECT pg_catalog.setval('public.grades_id_seq', 4, true);
+SELECT pg_catalog.setval('public.grades_id_seq', 7, true);
 
 
 --
 -- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: marysmith
 --
 
-SELECT pg_catalog.setval('public.projects_id_seq', 5, true);
+SELECT pg_catalog.setval('public.projects_id_seq', 4, true);
 
 
 --
 -- Name: students_id_seq; Type: SEQUENCE SET; Schema: public; Owner: marysmith
 --
 
-SELECT pg_catalog.setval('public.students_id_seq', 2, true);
+SELECT pg_catalog.setval('public.students_id_seq', 4, true);
 
 
 --
@@ -221,7 +247,7 @@ ALTER TABLE ONLY public.projects
 --
 
 ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT students_pkey PRIMARY KEY (github);
 
 
 --
